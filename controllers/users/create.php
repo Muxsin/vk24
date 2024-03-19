@@ -1,5 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
+use Muhsin\VK\Core\Database;
+use Muhsin\VK\Models\User;
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (
         !isset($_POST['name']) ||
@@ -12,29 +17,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    $user_exist_stmt = $conn->prepare("SELECT * FROM Users WHERE name = ?");
-    $user_exist_stmt->execute([$_POST['name']]);
+    $config = require 'config.php';
+    $db = new Database($config['database'], 'root', 'secret');
 
-    $user = $user_exist_stmt->fetch(PDO::FETCH_ASSOC);
+    $result = (new User($db))->create($_POST['name']);
 
-    if ($user) {
-        http_response_code(422);
-
-        echo json_encode(['error' => 'User with that name already exists.']);
+    if (gettype($result) === 'string') {
+        echo json_encode(['error' => $result]);
 
         exit;
     }
 
-    try {
-        $stmt = $conn->prepare("INSERT INTO users (name) VALUES (?)");
-        $stmt->execute([$_POST['name']]);
-
-        $user_stmt = $conn->prepare("SELECT * FROM Users WHERE id = ?");
-        $user_stmt->execute([$conn->lastInsertId()]);
-        $user = $user_stmt->fetch(PDO::FETCH_ASSOC);
-
-        echo json_encode($user);
-    } catch (PDOException $e) {
-        echo json_encode(['error' => 'Failed to create user.']);
-    }
+    echo json_encode($result);
 }
