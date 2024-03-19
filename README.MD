@@ -26,12 +26,17 @@
 ### User
 
 - `GET` /api/users?user_id=1
+    - Description: _A method that returns the history of tasks completed by the user and his balance._
 - `POST` /api/users
     - Parameters: `name`
+    - Description: _User creation method._
 
 ### Quest
 
 - `POST` /api/quests
     - Parameters: `name`, `cost`
+    - Description: _Quest creation method._
 - `POST` /api/quests/completed
     - Parameters: `user_id`, `quest_id`
+    - Description: _A method that signals to the service that some event has occurred, the user has fulfilled the
+      condition, and the task can be considered completed and a reward can be given to the user._
