@@ -1,40 +1,41 @@
 <?php
 
-function completeQuest($user_id, $quest_id) {
-    global $conn;
+declare(strict_types=1);
 
-    $user_stmt =  $conn->prepare("SELECT * FROM Users WHERE id = ?");
-    $user_stmt->execute([$user_id]);
+use Muhsin\VK\Core\Database;
+use Muhsin\VK\Models\Quest;
+use Muhsin\VK\Models\User;
 
-    $user = $user_stmt->fetch(PDO::FETCH_ASSOC);
+function completeQuest(int $user_id, int $quest_id): array|string
+{
+    $config = require 'config.php';
+    $db = new Database($config['database'], 'root', 'secret');
 
-    $quest_stmt =  $conn->prepare("SELECT * FROM Quests WHERE id = ?");
-    $quest_stmt->execute([$quest_id]);
+    $quest_model = new Quest($db);
+    $user_model = new User($db);
 
-    $quest = $quest_stmt->fetch(PDO::FETCH_ASSOC);
+    $user = $user_model->get($user_id);
+    $quest = $quest_model->get($quest_id);
 
-    if (!$user || !$quest) {
-        return false;
+    if ($user === false || $quest === false) {
+        return "User|Quest not found.";
     }
 
-    $completion_stmt = $conn->prepare("SELECT * FROM UserQuests WHERE user_id = ? AND quest_id = ?");
-    $completion_stmt->execute([$user_id, $quest_id]);
+    $completion = $quest_model->findCompleted($user_id, $quest_id);
 
-    $completion = $completion_stmt->fetch(PDO::FETCH_ASSOC);
-
-    if ($completion) {
-        return false;
+    if ($completion !== false) {
+        return "User already completed this task.";
     }
 
-    $stmt = $conn->prepare("INSERT INTO UserQuests (user_id, quest_id, completed_at) VALUES (?, ?, NOW())");
-    $stmt->execute([$user_id, $quest_id]);
+    $complete = $quest_model->complete($user_id, $quest_id);
+
+    if ($complete === false) {
+        return "Failed to complete the quest.";
+    }
 
     $balance = $user['balance'] + $quest['cost'];
 
-    $stmt = $conn->prepare("UPDATE Users SET balance = ? WHERE id = ?");
-    $stmt->execute([$balance, $user_id]);
-
-    return true;
+    return $user_model->updateBalance($user_id, $balance);
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -46,19 +47,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ) {
         http_response_code(422);
 
-        echo json_encode([
-            'status' => 'error',
-            'name' => 'Missing a mandatory argument',
-            'message' => 'Please fill all the required fields & None of the fields should be empty.',
-            'required_fields' => ['user', 'quest']
-        ]);
+        echo json_encode(['error' => 'Please fill all the required fields & None of the fields should be empty.']);
 
         exit;
     }
 
-    if (completeQuest($_POST['user_id'], $_POST['quest_id'])) {
-        echo json_encode(['message' => 'Quest completed and reward awarded.']);
+    $completion = completeQuest((int)$_POST['user_id'], (int)$_POST['quest_id']);
+
+    if (gettype($completion) === "string") {
+        echo json_encode(['error' => $completion]);
     } else {
-        echo json_encode(['error' => 'Quest already completed or an error occurred.']);
+        echo json_encode($completion);
     }
 }

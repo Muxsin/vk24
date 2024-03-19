@@ -1,5 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
+use Muhsin\VK\Core\Database;
+use Muhsin\VK\Models\Quest;
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (
         !isset($_POST['name']) ||
@@ -14,29 +19,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    $quest_exist_stmt = $conn->prepare("SELECT * FROM Quests WHERE name = ?");
-    $quest_exist_stmt->execute([$_POST['name']]);
+    $config = require 'config.php';
+    $db = new Database($config['database'], 'root', 'secret');
 
-    $quest = $quest_exist_stmt->fetch(PDO::FETCH_ASSOC);
+    $result = (new Quest($db))->create($_POST['name'], (int)$_POST['cost']);
 
-    if ($quest) {
-        http_response_code(422);
-
-        echo json_encode(['error' => 'Quest with that name already exists.']);
+    if (gettype($result) === 'string') {
+        echo json_encode(['error' => $result]);
 
         exit;
     }
 
-    try {
-        $stmt = $conn->prepare("INSERT INTO quests (name, cost) VALUES (?, ?)");
-        $stmt->execute([$_POST['name'], $_POST['cost']]);
-
-        $quest_stmt = $conn->prepare("SELECT * FROM Quests WHERE id = ?");
-        $quest_stmt->execute([$conn->lastInsertId()]);
-        $quest = $quest_stmt->fetch(PDO::FETCH_ASSOC);
-
-        echo json_encode($quest);
-    } catch (PDOException $e) {
-        echo json_encode(['error' => 'Failed to create quest.']);
-    }
+    echo json_encode($result);
 }

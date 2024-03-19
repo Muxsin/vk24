@@ -1,5 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
+use Muhsin\VK\Core\Database;
+use Muhsin\VK\Models\Quest;
+use Muhsin\VK\Models\User;
+
 if (
     !isset($_GET['user_id']) ||
     empty(trim($_GET['user_id']))
@@ -11,23 +17,18 @@ if (
     exit;
 }
 
-$user_exist_stmt = $conn->prepare("SELECT * FROM Users WHERE id = ?");
-$user_exist_stmt->execute([$_GET['user_id']]);
+$config = require 'config.php';
+$db = new Database($config['database'], 'root', 'secret');
 
-$user = $user_exist_stmt->fetch(PDO::FETCH_ASSOC);
+$user = (new User($db))->get((int)$_GET['user_id']);
 
-if (!$user) {
-    http_response_code(404);
-
+if ($user === false) {
     echo json_encode(['error' => 'User not found.']);
 
     exit;
 }
 
-$user_quests_stmt = $conn->prepare("SELECT q.*, uq.completed_at as completed_at FROM UserQuests uq LEFT JOIN Quests q ON uq.quest_id = q.id WHERE uq.user_id = ?");
-$user_quests_stmt->execute([$_GET['user_id']]);
-
-$quests = $user_quests_stmt->fetchAll(PDO::FETCH_ASSOC);
+$quests = (new Quest($db))->findAllCompleted($user['id']);
 
 echo json_encode([
     'user' => $user,
