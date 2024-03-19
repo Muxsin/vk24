@@ -1,0 +1,18 @@
+#!/usr/bin/php
+<?php
+
+class Marusia
+{
+    public function action($args)
+    {
+        $script = array_shift($args);
+
+        if ($args[0] == "migrate") {
+            print("Migration started!");
+        }
+
+        print($args[0]);
+    }
+}
+
+(new Marusia)->action($argv);
