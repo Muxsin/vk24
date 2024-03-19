@@ -20,3 +20,18 @@
 ## Extra
 
 - You can run `php ./marusia empty <tablename>` to truncate table.
+
+## Methods
+
+### User
+
+- `GET` /api/users?user_id=1
+- `POST` /api/users
+    - Parameters: `name`
+
+### Quest
+
+- `POST` /api/quests
+    - Parameters: `name`, `cost`
+- `POST` /api/quests/completed
+    - Parameters: `user_id`, `quest_id`
