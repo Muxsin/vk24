@@ -4,22 +4,22 @@ $routes = [
     [
         'route' => '/api/users',
         'method' => 'GET',
-        'path' => 'controllers/user.php',
+        'path' => 'controllers/users/show.php',
     ],
     [
         'route' => '/api/users',
         'method' => 'POST',
-        'path' => 'controllers/user.php',
+        'path' => 'controllers/users/create.php',
     ],
     [
         'route' => '/api/quests',
         'method' => 'POST',
-        'path' => 'controllers/quest.php',
+        'path' => 'controllers/quests/create.php',
     ],
     [
         'route' => '/api/quests/completed',
         'method' => 'POST',
-        'path' => 'controllers/completeQuest.php',
+        'path' => 'controllers/quests/complete.php',
     ]
 ];
 
