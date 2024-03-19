@@ -17,10 +17,6 @@
 2. Visit http://localhost:8080
 3. Enjoy!
 
-## Extra
-
-- You can run `php ./marusia empty <tablename>` to truncate table.
-
 ## Methods
 
 ### User
@@ -40,3 +36,7 @@
     - Parameters: `user_id`, `quest_id`
     - Description: _A method that signals to the service that some event has occurred, the user has fulfilled the
       condition, and the task can be considered completed and a reward can be given to the user._
+
+## Extra
+
+- You can run `php ./marusia empty <tablename>` to truncate table.
