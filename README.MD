@@ -1,5 +1,11 @@
 # VK 2024
 
+## Requirement
+
+- PHP 8.2
+- MySql DBSM
+- Composer
+
 ## Installation
 
 1. Run `composer install`
